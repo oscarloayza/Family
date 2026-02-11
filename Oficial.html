@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nuestro Árbolito de Amor</title>
+
+<style>
+/* =====================
+   ESTILO GENERAL
+===================== */
+body {
+  margin: 0;
+  background-color: #fff5f5; /* fondo cálido */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+  color: #4a4a4a;
+}
+
+/* =====================
+   ENCABEZADO
+===================== */
+header {
+  text-align: center;
+  padding: clamp(10px, 4vw, 20px);
+}
+
+h1 {
+  font-size: 2rem;
+  margin: 0 auto;
+  background: linear-gradient(to right, #ff7e5f, #feb47b, #ff7eb3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: pulseTitle 3s ease-in-out infinite;
+}
+
+.heart-float {
+  display: inline-block;
+  animation: blink 2s infinite;
+}
+  .emoji {
+  -webkit-text-fill-color: initial !important;
+  color: #ff5d8f;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes pulseTitle {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+.romantic-text {
+  font-style: italic;
+  font-size: 1.2rem;
+  color: #d63384;
+  max-width: 80%;
+  margin: 0 auto;
+}
+
+/* =====================
+   CONTADOR ROMÁNTICO
+===================== */
+.contador-romantico {
+  margin-top: 15px;
+  padding: 14px 26px;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 40px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #c9184a;
+  border: 1px solid #ffd1d1;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  animation: pulseCounter 3s ease-in-out infinite;
+  max-width: 90%;
+}
+
+@keyframes pulseCounter {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+/* =====================
+   CANVAS
+===================== */
+#canvasContainer {
+  width: 100%;
+  max-width: auto;
+  aspect-ratio: 3 / 4;
+  margin: 10px auto;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: transparent;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>
+    <span class="heart-float emoji">💖</span>
+    Nuestro Árbolito de Amor
+    <span class="heart-float emoji">💖</span>
+  </h1>
+  <p class="romantic-text">
+    “Desde el día que unimos nuestras vidas, nuestro mundo cambio... ahora tenemos dos princesitas que nos acompañan”
+  </p>
+
+<div id="counter" class="contador-romantico">
+  Cargando nuestro tiempo juntos...
+</div>
+
+</header>
+
+<div id="canvasContainer">
+  <canvas id="canvas" width="420" height="560"></canvas>
+</div>
+
+<script>
+/* =========================================================
+   CONFIGURACIÓN BASE CANVAS (TU CÓDIGO ORIGINAL)
+========================================================= */
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+ctx.lineCap = "round";
+
+  
+  
+  
+/* =========================================================
+   CONFIGURACIÓN VISUAL EDITABLE
+========================================================= */
+const COLORS = {
+  trunk: "#7a4a2e",
+  branch: "#7a4a2e",
+  hearts: ["#ffd6e0", "#ff9ebb", "#ff5d8f", "#c9184a"]
+};
+
+const TREE = {
+  trunkBaseWidth: 26,
+  trunkTopWidth: 10,
+  trunkHeight: 220,
+  trunkCurve: 18
+};
+
+/* =========================================================
+   SISTEMA DE RAMAS
+========================================================= */
+let ramas = [];
+let fase = 0;
+
+class Rama {
+  constructor(x, y, len, ang, w, depth) {
+    this.x = x;
+    this.y = y;
+    this.len = 0;
+    this.max = len;
+    this.ang = ang;
+    this.w = w;
+    this.depth = depth;
+    this.split = false;
+  }
+
+  grow() {
+    if (this.len < this.max) this.len += 2;
+    else if (this.depth > 0 && !this.split) {
+      this.split = true;
+      const d = Math.PI / 5;
+      ramas.push(
+        new Rama(this.x2(), this.y2(), this.max * 0.75, this.ang - d, this.w * 0.7, this.depth - 1),
+        new Rama(this.x2(), this.y2(), this.max * 0.75, this.ang + d, this.w * 0.7, this.depth - 1)
+      );
+    }
+  }
+
+  x2() { return this.x + Math.cos(this.ang) * this.len; }
+  y2() { return this.y + Math.sin(this.ang) * this.len; }
+
+  draw() {
+    ctx.strokeStyle = COLORS.branch;
+    ctx.lineWidth = this.w;
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(this.x2(), this.y2());
+    ctx.stroke();
+  }
+}
+
+/* =========================================================
+   TRONCO ORGÁNICO
+========================================================= */
+function drawOrganicTrunk() {
+  const baseX = canvas.width / 2;
+  const baseY = canvas.height - 40;
+  const topY = baseY - TREE.trunkHeight;
+
+  ctx.fillStyle = COLORS.trunk;
+  ctx.beginPath();
+  ctx.moveTo(baseX - TREE.trunkBaseWidth / 2, baseY);
+  ctx.bezierCurveTo(
+    baseX - TREE.trunkBaseWidth - TREE.trunkCurve,
+    baseY - TREE.trunkHeight * 0.4,
+    baseX - TREE.trunkTopWidth,
+    topY + TREE.trunkHeight * 0.2,
+    baseX - TREE.trunkTopWidth / 2,
+    topY
+  );
+  ctx.bezierCurveTo(
+    baseX + TREE.trunkTopWidth,
+    topY + TREE.trunkHeight * 0.2,
+    baseX + TREE.trunkBaseWidth + TREE.trunkCurve,
+    baseY - TREE.trunkHeight * 0.4,
+    baseX + TREE.trunkBaseWidth / 2,
+    baseY
+  );
+  ctx.closePath();
+  ctx.fill();
+}
+
+/* =========================================================
+   CORAZONES
+========================================================= */
+let hearts = [];
+let fallingHearts = [];
+let time = 0;
+
+function heartColor() {
+  return COLORS.hearts[Math.floor(Math.random() * COLORS.hearts.length)];
+}
+
+function drawHeart(x, y, s, a, col) {
+  ctx.save();
+  ctx.globalAlpha = a;
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.bezierCurveTo(x - s, y - s, x - s * 2, y + s, x, y + s * 2);
+  ctx.bezierCurveTo(x + s * 2, y + s, x + s, y - s, x, y);
+  ctx.fill();
+  ctx.restore();
+}
+
+/* ======================================================
+   PERSONA DETALLADA (CABELLO + ROSTRO)
+====================================================== */
+function drawPerson(x, y, scale, type, shirtColor, skirtColor = null) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+
+  /* === CABELLO === */
+  if (type === "mom") {
+    // cabello largo
+    ctx.fillStyle = "#3b2f2f";
+    ctx.beginPath();
+    ctx.arc(0, -78, 22, Math.PI, Math.PI * 2);
+    ctx.rect(-22, -78, 44, 30);
+    ctx.fill();
+  }
+
+  if (type === "dad") {
+    // cabello corto
+    ctx.fillStyle = "#2c2c2c";
+    ctx.beginPath();
+    ctx.arc(0, -82, 18, Math.PI, Math.PI * 2);
+    ctx.fill();
+  }
+
+ if (type === "kid") {
+  // cabello crespo largo
+  ctx.fillStyle = "#3b2f2f";
+
+  // volumen superior
+  for (let i = -16; i <= 16; i += 6) {
+    ctx.beginPath();
+    ctx.arc(i, -82, 7, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // rizos laterales largos
+  for (let y = -70; y <= -30; y += 10) {
+    ctx.beginPath();
+    ctx.arc(-18, y, 6, 0, Math.PI * 2);
+    ctx.arc(18, y, 6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+  /* === CABEZA === */
+  ctx.fillStyle = "#f1c27d";
+  ctx.beginPath();
+  ctx.arc(0, -70, 18, 0, Math.PI * 2);
+  ctx.fill();
+
+  /* OJOS */
+  ctx.fillStyle = "#333";
+  ctx.beginPath();
+  ctx.arc(-6, -72, 2, 0, Math.PI * 2);
+  ctx.arc(6, -72, 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  /* SONRISA */
+  ctx.strokeStyle = "#a0522d";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, -66, 8, 0, Math.PI);
+  ctx.stroke();
+
+  /* === CUERPO === */
+  ctx.fillStyle = shirtColor;
+  ctx.beginPath();
+  ctx.moveTo(-22, -45);
+  ctx.lineTo(22, -45);
+  ctx.lineTo(14, 0);
+  ctx.lineTo(-14, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  /* FALDA */
+  if (skirtColor) {
+    ctx.fillStyle = skirtColor;
+    ctx.beginPath();
+    ctx.moveTo(-18, 0);
+    ctx.lineTo(18, 0);
+    ctx.lineTo(0, 30);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  /* PIERNAS */
+  ctx.strokeStyle = "#5a3e36";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(-8, 0);
+  ctx.lineTo(-8, 35);
+  ctx.moveTo(8, 0);
+  ctx.lineTo(8, 35);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+/* ======================================================
+   TEXTO DE NOMBRES (PARPADEO SUAVE)
+====================================================== */
+function drawName(text, x, y) {
+  const alpha = 0.6 + Math.sin(time * 2) * 0.4;
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = "#c9184a";
+  ctx.font = "bold 14px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+
+  // sombra suave
+  ctx.shadowColor = "rgba(0,0,0,0.2)";
+  ctx.shadowBlur = 4;
+
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+
+function inHeart(x, y) {
+  x /= 135;
+  y /= 135;
+  return (x*x + y*y - 1)**3 - x*x*y*y*y <= 0;
+}
+
+function generateHeartCloud() {
+  hearts.length = 0;
+  const cx = canvas.width / 2;
+  const cy = 220;
+
+  for (let x = -220; x <= 220; x += 8) {
+    for (let y = -220; y <= 220; y += 8) {
+      if (inHeart(x, y)) {
+        hearts.push({
+          x: cx + x,
+          y: cy - y,
+          s: 4 + Math.random() * 3,
+          a: 0,
+          c: heartColor(),
+          visible: false
+        });
+      }
+    }
+  }
+  hearts.sort(() => Math.random() - 0.5);
+}
+
+function spawnFallingHeart() {
+  const source = hearts[Math.floor(Math.random() * hearts.length)];
+  if (!source) return;
+
+  fallingHearts.push({
+    x: source.x,
+    y: source.y,
+    s: 3 + Math.random() * 2,
+    vx: Math.random() * 0.8 - 0.4,
+    vy: 0.6 + Math.random() * 1.3,
+    c: heartColor()
+  });
+}
+
+
+/* ======================================================
+   FAMILIA AGARRADA DE LA MANO + NOMBRES
+====================================================== */
+function drawFamily() {
+  const baseY = canvas.height - 72;
+  const cx = canvas.width / 2;
+
+  // posiciones X
+  const momX = cx - 85;
+  const dadX = cx - 25;
+  const girlX = cx + 30;
+  const babyX = cx + 75;
+
+  // personas
+  drawPerson(momX, baseY, 1.15, "mom", "#ff9ebb", "#ffcad4");
+  drawPerson(dadX, baseY, 1.2, "dad", "#5dade2");
+  drawPerson(girlX, baseY, 0.85, "kid", "#ffd166", "#ffe29a");
+  drawPerson(babyX, baseY, 0.65, "kid", "#f4a261", "#fbc4ab");
+
+  /* === BRAZOS Y MANOS === */
+  ctx.strokeStyle = "#5a3e3e";
+  ctx.lineWidth = 3;
+
+  ctx.beginPath();
+  ctx.moveTo(momX + 22, baseY - 40);
+  ctx.quadraticCurveTo(cx - 60, baseY - 30, dadX - 22, baseY - 40);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(dadX + 22, baseY - 40);
+  ctx.quadraticCurveTo(cx + 5, baseY - 30, girlX - 22, baseY - 40);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(girlX + 18, baseY - 38);
+  ctx.quadraticCurveTo(cx + 60, baseY - 28, babyX - 18, baseY - 38);
+  ctx.stroke();
+
+  /* === NOMBRES === */
+  const nameY = baseY + 47;
+
+drawName("Anita", momX, nameY);
+drawName("Oscar", dadX, nameY);
+drawName("Aurora", girlX, nameY);
+drawName("Paula", babyX, nameY);
+}
+
+/* =========================================================
+   ANIMACIÓN
+========================================================= */
+/* ======================================================
+   CONTADOR EN TIEMPO REAL (ROMÁNTICO)
+====================================================== */
+const inicio = new Date("2022-02-22T00:00:00");
+const contadorEl = document.getElementById("counter");
+
+function actualizarContador() {
+  const ahora = new Date();
+  let diff = Math.floor((ahora - inicio) / 1000);
+
+  const años = Math.floor(diff / (365 * 24 * 3600));
+  diff -= años * 365 * 24 * 3600;
+
+  const dias = Math.floor(diff / (24 * 3600));
+  diff -= dias * 24 * 3600;
+
+  const horas = Math.floor(diff / 3600);
+  diff -= horas * 3600;
+
+  const minutos = Math.floor(diff / 60);
+  const segundos = diff % 60;
+
+  contadorEl.innerHTML =
+    `⏰💍 Llevamos <strong>${años}</strong> años, 
+     <strong>${dias}</strong> días, 
+     <strong>${horas}</strong>h 
+     <strong>${minutos}</strong>m 
+     <strong>${segundos}</strong>s casados`;
+}
+
+setInterval(actualizarContador, 1000);
+actualizarContador();
+
+
+
+
+
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  time += 0.02;
+
+  drawOrganicTrunk();
+  ramas.forEach(r => { r.grow(); r.draw(); });
+
+  if (fase === 0 && ramas.every(r => r.split || r.depth === 0)) {
+    fase = 1;
+    generateHeartCloud();
+  }
+
+  const beat = 1 + Math.sin(time) * 0.02;
+  ctx.save();
+  ctx.translate(canvas.width / 2, 220);
+  ctx.scale(beat, beat);
+  ctx.translate(-canvas.width / 2, -220);
+
+  if (fase === 1) {
+    for (let i = 0; i < hearts.length; i++) {
+      if (!hearts[i].visible) {
+        hearts[i].visible = true;
+        break;
+      }
+    }
+
+    hearts.forEach(h => {
+      if (h.visible && h.a < 1) h.a += 0.03;
+      if (h.visible) drawHeart(h.x, h.y, h.s, h.a, h.c);
+    });
+  }
+  ctx.restore();
+
+  if (fase === 1 && Math.random() < 0.05) spawnFallingHeart();
+
+  fallingHearts.forEach((h, i) => {
+    h.x += h.vx;
+    h.y += h.vy;
+    drawHeart(h.x, h.y, h.s, 1, h.c);
+    if (h.y > canvas.height + 30) fallingHearts.splice(i, 1);
+  });
+
+// 👨‍👩‍👧‍👧 familia al frente
+drawFamily();
+  requestAnimationFrame(animate);
+}
+
+/* =========================================================
+   INICIO
+========================================================= */
+ramas.push(
+  new Rama(
+    canvas.width / 2,
+    canvas.height - TREE.trunkHeight,
+    90,
+    -Math.PI / 2,
+    TREE.trunkTopWidth,
+    4
+  )
+);
+
+animate();
+</script>
+
+</body>
+</html>
