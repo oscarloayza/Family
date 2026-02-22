@@ -469,15 +469,41 @@ drawName("Paula", babyX, nameY);
 /* ======================================================
    CONTADOR EN TIEMPO REAL (ROMÁNTICO)
 ====================================================== */
-const inicio = new Date("2022-02-22T19:00:00-04:00");
-const contadorEl = document.getElementById("counter");
+
+
+  const contadorEl = document.getElementById("counter");
 
 function actualizarContador() {
   const ahora = new Date();
-  let diff = Math.floor((ahora - inicio) / 1000);
+  const inicio = new Date(2022, 1, 22, 19, 0, 0); // 22 Feb 2022 7pm
 
-  const años = Math.floor(diff / (365 * 24 * 3600));
-  diff -= años * 365 * 24 * 3600;
+  let años = ahora.getFullYear() - inicio.getFullYear();
+
+  // Crear aniversario de este año
+  let aniversario = new Date(
+    ahora.getFullYear(),
+    inicio.getMonth(),
+    inicio.getDate(),
+    inicio.getHours(),
+    inicio.getMinutes(),
+    inicio.getSeconds()
+  );
+
+  // Si aún no llegó el aniversario exacto
+  if (ahora < aniversario) {
+    años--;
+    aniversario = new Date(
+      ahora.getFullYear() - 1,
+      inicio.getMonth(),
+      inicio.getDate(),
+      inicio.getHours(),
+      inicio.getMinutes(),
+      inicio.getSeconds()
+    );
+  }
+
+  // Diferencia desde el último aniversario real
+  let diff = Math.floor((ahora - aniversario) / 1000);
 
   const dias = Math.floor(diff / (24 * 3600));
   diff -= dias * 24 * 3600;
@@ -498,8 +524,6 @@ function actualizarContador() {
 
 setInterval(actualizarContador, 1000);
 actualizarContador();
-
-
 
 
 
